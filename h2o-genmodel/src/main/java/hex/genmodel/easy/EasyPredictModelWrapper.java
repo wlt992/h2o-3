@@ -360,10 +360,9 @@ public class EasyPredictModelWrapper implements Serializable {
 
     DimReductionModelPrediction p = new DimReductionModelPrediction();
     p.dimensions = preds;
-    if (m instanceof GlrmMojoModel)
+    if (m instanceof GlrmMojoModel && ((GlrmMojoModel) m)._archetypes_raw != null)  // only for verion 1.10 or higher
       p.reconstructed = ((GlrmMojoModel) m).impute_data(preds, new double[m.nfeatures()]);
     return p;
-
   }
   /**
    * Lookup word embeddings for a given word (or set of words).

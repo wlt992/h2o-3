@@ -132,7 +132,7 @@ public class GLRMModel extends Model<GLRMModel, GLRMModel.GLRMParameters, GLRMMo
     public String _representation_name;
     public Key<Frame> _representation_key;
     public Key<? extends Model> _init_key;
-    public Key<Frame> _xFactorkey;  // store key of x factor generated from dataset prediction
+    public Key<Frame> _x_factor_key;  // store key of x factor generated from dataset prediction
 
     // Number of categorical and numeric columns
     public int _ncats;
@@ -188,7 +188,7 @@ public class GLRMModel extends Model<GLRMModel, GLRMModel.GLRMParameters, GLRMMo
 
   @Override protected Futures remove_impl( Futures fs ) {
     if (_output._init_key != null) _output._init_key.remove(fs);
-    if ((_output._xFactorkey!=null) && !_output._xFactorkey.equals(_output._representation_key)) _output._xFactorkey.remove(fs);
+    if (_output._x_factor_key !=null) _output._x_factor_key.remove(fs);
     if (_output._representation_key != null) _output._representation_key.remove(fs);
 
     return super.remove_impl(fs);
@@ -222,14 +222,14 @@ public class GLRMModel extends Model<GLRMModel, GLRMModel.GLRMParameters, GLRMMo
     int ncols = _output._names.length;
     assert ncols == adaptedFr.numCols();
     String prefix = "reconstr_";
-    _output._xFactorkey = gen_representation_key(orig);
+    _output._x_factor_key = gen_representation_key(orig);
 
     // Need [A,X,P] where A = adaptedFr, X = loading frame, P = imputed frame
     // Note: A is adapted to original training frame, P has columns shuffled so cats come before nums!
     Frame fullFrm = new Frame(adaptedFr);
     Frame loadingFrm = null;  // get this from DKV or generate it from scratch
     // call resconstruct only if test frame key and training frame key matches plus frame dimensions match as well
-    if (!orig._key.equals(_parms._train) || !(orig.numRows() == _parms.train().numRows()) && (orig.numCols() == _parms.train().numCols())) {
+    if (orig.checksum()!=(_parms.train().checksum())) { // compare with checksum instead of frame keys.
       // need to generate the X matrix and put it in as a frame ID.  Mojo predict will return one row of x as a double[]
       GLRMGenX gs = new GLRMGenX(this, _parms._k);
       gs.doAll(gs._k, Vec.T_NUM, orig);
@@ -237,10 +237,10 @@ public class GLRMModel extends Model<GLRMModel, GLRMModel.GLRMParameters, GLRMMo
       for (int index=1; index <= gs._k; index++)
         loadingFrmNames[index-1] = "Arch"+index;
       String[][] loadingFrmDomains = new String[gs._k][];
-      DKV.put(gs.outputFrame(_output._xFactorkey,loadingFrmNames, loadingFrmDomains));
+      DKV.put(gs.outputFrame(_output._x_factor_key,loadingFrmNames, loadingFrmDomains));
     }
   //  Key newXKey = gen_representation_key(orig);
-    loadingFrm = DKV.get(_output._xFactorkey).get();
+    loadingFrm = DKV.get(_output._x_factor_key).get();
     fullFrm.add(loadingFrm);
     String[][] adaptedDomme = adaptedFr.domains();
     Vec anyVec = fullFrm.anyVec();

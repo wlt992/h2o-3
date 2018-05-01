@@ -20,7 +20,7 @@ public class GlrmMojoWriter extends ModelMojoWriter<GLRMModel, GLRMModel.GLRMPar
   }
 
   @Override public String mojoVersion() {
-    return "1.00";
+    return "1.10";
   }
 
   @Override

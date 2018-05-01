@@ -34,6 +34,7 @@ import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
 
 public class GLRMTest extends TestUtil {
@@ -401,26 +402,26 @@ public class GLRMTest extends TestUtil {
       Scope.enter();
       CreateFrame cf = new CreateFrame();
       Random generator = new Random();
-      int numRows = generator.nextInt(10000)+50000;
-      int numCols = generator.nextInt(17)+3;
-      cf.rows= numRows;
+      int numRows = generator.nextInt(10000) + 50000;
+      int numCols = generator.nextInt(17) + 3;
+      cf.rows = numRows;
       cf.cols = numCols;
-      cf.binary_fraction=0;
-      cf.string_fraction=0;
-      cf.time_fraction=0;
-      cf.has_response=false;
-      cf.positive_response=true;
+      cf.binary_fraction = 0;
+      cf.string_fraction = 0;
+      cf.time_fraction = 0;
+      cf.has_response = false;
+      cf.positive_response = true;
       cf.missing_fraction = 0.1;
       cf.seed = System.currentTimeMillis();
-      System.out.println("Createframe parameters: rows: "+numRows+" cols:"+numCols+" seed: "+cf.seed);
+      System.out.println("Createframe parameters: rows: " + numRows + " cols:" + numCols + " seed: " + cf.seed);
 
       Frame trainMultinomial = Scope.track(cf.execImpl().get());
       double tfrac = 0.2;
-      SplitFrame sf = new SplitFrame(trainMultinomial, new double[]{1-tfrac, tfrac}, new Key[] {Key.make("train.hex"), Key.make("test.hex")});
+      SplitFrame sf = new SplitFrame(trainMultinomial, new double[]{1 - tfrac, tfrac}, new Key[]{Key.make("train.hex"), Key.make("test.hex")});
       sf.exec().get();
       Key[] ksplits = sf._destination_frames;
-     Frame tr = DKV.get(ksplits[0]).get();
-     Frame te = DKV.get(ksplits[1]).get();
+      Frame tr = DKV.get(ksplits[0]).get();
+      Frame te = DKV.get(ksplits[1]).get();
       Scope.track(tr);
       Scope.track(te);
 
@@ -442,13 +443,13 @@ public class GLRMTest extends TestUtil {
       Scope.track(xfactorTr);
       Frame predTr = model.score(tr);
       Scope.track(predTr);
-      assert predTr.numRows()==xfactorTr.numRows(); // make sure x factor is derived from tr
+      assertEquals(predTr.numRows(), xfactorTr.numRows()); // make sure x factor is derived from tr
       Frame predT = model.score(te); // predict on new data and compare with mojo
       Scope.track(predT);
       Frame xfactorTe = DKV.get(model.gen_representation_key(te)).get();
       Scope.track(xfactorTe);
-      assert predT.numRows()==xfactorTe.numRows(); // make sure x factor is derived from te
-      Assert.assertTrue(model.testJavaScoring(te, predT,1e-6,1e-6, 1));
+      assertEquals(predT.numRows(), xfactorTe.numRows()); // make sure x factor is derived from te
+      Assert.assertTrue(model.testJavaScoring(te, predT, 1e-6, 1e-6, 1));
     } finally {
       Scope.exit();
     }

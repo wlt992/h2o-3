@@ -30,12 +30,12 @@ def glrm_mojo():
     TMPDIR = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath('__file__')), "..", "results", MOJONAME))
 
     h2o.download_csv(test[x], os.path.join(TMPDIR, 'in.csv'))  # save test file, h2o predict/mojo use same file
-    frameID, mojoXFactor = pyunit_utils.mojo_predict(glrmModel, TMPDIR, MOJONAME, xFactor=True) # save mojo XFactor
+    frameID, mojoXFactor = pyunit_utils.mojo_predict(glrmModel, TMPDIR, MOJONAME, glrmReconstruct=False) # save mojo XFactor
     print("Comparing mojo x Factor and model x Factor ...")
     glrmTestFactor = h2o.get_frame("GLRMLoading_"+frameID)   # store the x Factor for new test dataset
     pyunit_utils.compare_frames_local(glrmTestFactor, mojoXFactor, 1, tol=1e-10)
 
-    pred_h2o, pred_mojo = pyunit_utils.mojo_predict(glrmModel, TMPDIR, MOJONAME, xFactor=False) # save mojo predict
+    pred_h2o, pred_mojo = pyunit_utils.mojo_predict(glrmModel, TMPDIR, MOJONAME, glrmReconstruct=True) # save mojo predict
     print("Comparing mojo predict and h2o predict...")
     for col in range(pred_h2o.ncols):
         if pred_h2o[col].isfactor():

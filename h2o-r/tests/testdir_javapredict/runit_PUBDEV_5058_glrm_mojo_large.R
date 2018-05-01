@@ -14,12 +14,9 @@ test.ordinalGlrm.mojo <-
       modelAndDir<-buildModelSaveMojoGLRM(params_prob_data$params) # build the model and save mojo
       filename = sprintf("%s/in.csv", modelAndDir$dirName) # save the test dataset into a in.csv file.
       h2o.downloadCSV(params_prob_data$tDataset, filename)
-      twoFrames<-mojoH2Opredict(modelAndDir$model, modelAndDir$dirName, filename) # perform H2O and mojo prediction and return frames
-      #h2o.downloadCSV(twoFrames$h2oPredict, sprintf("%s/h2oPred.csv", modelAndDir$dirName))
-      #h2o.downloadCSV(twoFrames$mojoPredict, sprintf("%s/mojoOut.csv", modelAndDir$dirname))
-
+      twoFrames<-mojoH2Opredict(modelAndDir$model, modelAndDir$dirName, filename, glrmReconstruct=TRUE) # perform H2O and mojo prediction and return frames
       compareFrames(twoFrames$h2oPredict,twoFrames$mojoPredict, prob=1, tolerance = 1e-6)
-      twoFrames<-mojoH2Opredict(modelAndDir$model, modelAndDir$dirName, filename, xFactor=TRUE)
+      twoFrames<-mojoH2Opredict(modelAndDir$model, modelAndDir$dirName, filename)
       xFactorTest <- h2o.getFrame(paste("GLRMLoading", twoFrames$frameId, sep="_"))
       compareFrames(xFactorTest, twoFrames$mojoPredict, prob=1, tolerance =1e-6)
     }, error = function(x) x)

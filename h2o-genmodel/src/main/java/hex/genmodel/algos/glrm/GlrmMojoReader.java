@@ -29,9 +29,6 @@ public class GlrmMojoReader extends ModelMojoReader<GlrmMojoModel> {
     _model._normSub = readkv("norm_sub");
     _model._normMul = readkv("norm_mul");
     _model._permutation = readkv("cols_permutation");
-    _model._seed = ((Number) readkv("seed")).longValue();
-    _model._reverse_transform = readkv("reverse_transform");
-    _model._transposed = readkv("transposed");
 
     // loss functions
     _model._losses = new GlrmLoss[_model._ncolA];
@@ -39,10 +36,8 @@ public class GlrmMojoReader extends ModelMojoReader<GlrmMojoModel> {
     for (String line : readtext("losses")) {
       _model._losses[li++] = GlrmLoss.valueOf(line);
     }
-
     // archetypes
     _model._numLevels = readkv("num_levels_per_category");
-    _model._catOffsets = readkv("catOffsets");
     _model._archetypes = new double[_model._nrowY][];
     ByteBuffer bb = ByteBuffer.wrap(readblob("archetypes"));
     for (int i = 0; i < _model._nrowY; i++) {
@@ -51,16 +46,30 @@ public class GlrmMojoReader extends ModelMojoReader<GlrmMojoModel> {
       for (int j = 0; j < _model._ncolY; j++)
         row[j] = bb.getDouble();
     }
-    // load in archetypes raw
-    if (_model._transposed) {
-      _model._archetypes_raw = new double[_model._archetypes[0].length][_model._archetypes.length];
-      for (int row = 0; row < _model._archetypes.length; row++) {
-        for (int col = 0; col < _model._archetypes[0].length; col++) {
-          _model._archetypes_raw[col][row] = _model._archetypes[row][col];
+
+    // new fields added after version 1.00
+    try {
+      _model._seed = readkv("seed");
+      _model._reverse_transform = readkv("reverse_transform");
+      _model._transposed = readkv("transposed");
+      _model._catOffsets = readkv("catOffsets");
+      // load in archetypes raw
+      if (_model._transposed) {
+        _model._archetypes_raw = new double[_model._archetypes[0].length][_model._archetypes.length];
+        for (int row = 0; row < _model._archetypes.length; row++) {
+          for (int col = 0; col < _model._archetypes[0].length; col++) {
+            _model._archetypes_raw[col][row] = _model._archetypes[row][col];
+          }
         }
-      }
-    } else
-      _model._archetypes_raw = _model._archetypes;
+      } else
+        _model._archetypes_raw = _model._archetypes;
+    } catch (NullPointerException re) { // only expect null pointer exception.
+      _model._seed = System.currentTimeMillis();  // randomly initialize seed
+      _model._reverse_transform = true;
+      _model._transposed = true;
+      _model._catOffsets = null;
+      _model._archetypes_raw = null;
+    }
   }
 
   @Override

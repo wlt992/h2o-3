@@ -859,7 +859,7 @@ buildModelSaveMojoGLRM <- function(params) {
   return(list("model"=model, "dirName"=tmpdir_name))
 }
 
-mojoH2Opredict<-function(model, tmpdir_name, filename, xFactor=FALSE) {
+mojoH2Opredict<-function(model, tmpdir_name, filename, glrmReconstruct=FALSE) {
   newTest <- h2o.importFile(filename)
   predictions1 <- h2o.predict(model, newTest)
 
@@ -890,17 +890,17 @@ mojoH2Opredict<-function(model, tmpdir_name, filename, xFactor=FALSE) {
     )
   }
   
-  if (xFactor) {
-    cmd <- paste(cmd, "--xfactor", sep=" ")
+  if (glrmReconstruct) {
+    cmd <- paste(cmd, "--glrmReconstruct", sep=" ")
   }
   
   safeSystem(cmd)  # perform mojo prediction
   predictions2 = h2o.importFile(paste(tmpdir_name, "out_mojo.csv", sep =
   '/'), header=T)
 
-  if (xFactor) {
-    return(list("frameId"=h2o.getId(newTest), "mojoPredict"=predictions2))
-  } else {
+  if (glrmReconstruct) {
     return(list("h2oPredict"=predictions1, "mojoPredict"=predictions2))
+  } else {
+    return(list("frameId"=h2o.getId(newTest), "mojoPredict"=predictions2))
   }
 }
