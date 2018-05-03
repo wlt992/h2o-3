@@ -176,7 +176,11 @@ public class XGBoostModel extends Model<XGBoostModel, XGBoostModel.XGBoostParame
     } else {
       params.put("eta", p._learn_rate);
     }
-    params.put("max_depth", p._max_depth);
+    if (p._max_depth > 15 || p._max_depth < 1) {
+      throw new UnsupportedOperationException("MAX_DEPTH limit for XGBoost must be between 1 and 15. Value used: " + p._max_depth);
+    } else {
+      params.put("max_depth", p._max_depth);
+    }
     params.put("silent", p._quiet_mode);
     if (p._subsample!=1.0) {
       Log.info("Using user-provided parameter subsample instead of sample_rate.");

@@ -1,11 +1,16 @@
 package hex.tree.xgboost;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import water.H2O;
 
 import static org.junit.Assert.*;
 
 public class XGBoostModelTest {
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   @Test
   public void testCreateParamsNThreads() throws Exception {
@@ -26,6 +31,30 @@ public class XGBoostModelTest {
     pOver._nthread = H2O.ARGS.nthreads + 1;
     BoosterParms bpOver = XGBoostModel.createParams(pOver, 2);
     assertEquals((int) H2O.ARGS.nthreads, bpOver.get().get("nthread"));
+  }
+
+  @Test
+  public void testMaxDepthLowerBound() {
+    // Max depth must be in <1,15> (inclusive interval)
+    // Testing the lower bound
+    XGBoostModel.XGBoostParameters parameters = new XGBoostModel.XGBoostParameters();
+    parameters._max_depth = 0;
+
+    expectedException.expect(UnsupportedOperationException.class);
+    expectedException.expectMessage("MAX_DEPTH limit for XGBoost must be between 1 and 15. Value used: 0");
+    XGBoostModel.createParams(parameters, 2);
+  }
+
+  @Test
+  public void testMaxDepthUpperBound() {
+    // Max depth must be in <1,15> (inclusive interval)
+    // Testing the upper bound
+    XGBoostModel.XGBoostParameters parameters = new XGBoostModel.XGBoostParameters();
+    parameters._max_depth = 16;
+
+    expectedException.expect(UnsupportedOperationException.class);
+    expectedException.expectMessage("MAX_DEPTH limit for XGBoost must be between 1 and 15. Value used: 16");
+    XGBoostModel.createParams(parameters, 2);
   }
 
 }
